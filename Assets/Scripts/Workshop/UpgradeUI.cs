@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MetalPod.Accessibility;
 using TMPro;
 using MetalPod.ScriptableObjects;
 using MetalPod.UI;
@@ -212,6 +213,7 @@ namespace MetalPod.Workshop
                 protagonistController.SetCelebrating();
             }
 
+            HapticFeedbackManager.Instance?.OnUpgradePurchased();
             RefreshAll();
         }
 

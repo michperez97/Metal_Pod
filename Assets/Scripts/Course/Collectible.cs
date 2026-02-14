@@ -92,6 +92,7 @@ namespace MetalPod.Course
 
             _collected = true;
             OnCollected?.Invoke(this, controller);
+            MetalPod.Accessibility.HapticFeedbackManager.Instance?.OnCollectiblePickup();
             ApplyOptionalRestore(controller);
             PlayCollectionVfx();
             StartCoroutine(HideCollectibleRoutine());

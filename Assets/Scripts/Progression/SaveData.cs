@@ -356,6 +356,10 @@ namespace MetalPod.Progression
         public SerializableBoolDict completedCourses = new SerializableBoolDict();
         public SerializableBoolDict unlockedCourses = new SerializableBoolDict();
 
+        [Header("Tutorial")]
+        public bool tutorialCompleted = false;
+        public SerializableBoolDict completedTutorials = new SerializableBoolDict();
+
         [Header("Cosmetics")]
         public List<string> ownedCosmetics = new List<string>();
         public string equippedColorScheme = "default";
@@ -374,6 +378,20 @@ namespace MetalPod.Progression
             foreach (KeyValuePair<string, int> kvp in bestMedals)
             {
                 if (kvp.Value > 0)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public int GetGoldMedalCount()
+        {
+            int count = 0;
+            foreach (KeyValuePair<string, int> kvp in bestMedals)
+            {
+                if (kvp.Value >= (int)Course.Medal.Gold)
                 {
                     count++;
                 }

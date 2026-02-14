@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using MetalPod.Tutorial;
 using MetalPod.ScriptableObjects;
 using TMPro;
@@ -7,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace MetalPod.EditorTools
+namespace MetalPod.Editor
 {
     public static class TutorialSetup
     {
@@ -433,3 +434,4 @@ namespace MetalPod.EditorTools
         }
     }
 }
+#endif

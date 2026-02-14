@@ -1,4 +1,5 @@
 using System.Collections;
+using MetalPod.Accessibility;
 using TMPro;
 using UnityEngine;
 
@@ -79,6 +80,8 @@ namespace MetalPod.UI
         private void HandleCountdownTick(int value)
         {
             ShowCountdown(value);
+            string countdownValue = value > 0 ? value.ToString() : "GO";
+            AccessibilityManager.Instance?.Announce(string.Format(AccessibilityLabels.CountdownAnnounce, countdownValue));
         }
 
         private static MonoBehaviour FindSourceWithEvent(string eventName)

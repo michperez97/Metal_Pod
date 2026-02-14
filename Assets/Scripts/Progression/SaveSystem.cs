@@ -170,6 +170,20 @@ namespace MetalPod.Progression
                 data.ownedCosmetics = new System.Collections.Generic.List<string>();
             }
 
+            if (data.completedTutorials == null)
+            {
+                data.completedTutorials = new SerializableBoolDict();
+            }
+
+            if (data.tutorialCompleted)
+            {
+                data.completedTutorials.Set("first_play", true);
+            }
+            else if (data.completedTutorials.GetValueOrDefault("first_play", false))
+            {
+                data.tutorialCompleted = true;
+            }
+
             if (!data.ownedCosmetics.Contains("default"))
             {
                 data.ownedCosmetics.Add("default");

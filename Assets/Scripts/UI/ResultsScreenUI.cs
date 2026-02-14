@@ -1,4 +1,5 @@
 using System.Collections;
+using MetalPod.Accessibility;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -87,6 +88,7 @@ namespace MetalPod.UI
 
             StopAnimations();
             SetStaticFields(_currentResult);
+            AnnounceRaceResult(_currentResult);
 
             _timeRoutine = StartCoroutine(AnimateTimeCountUp(0f, _currentResult.completionTime, timeCountDuration));
             _medalRoutine = StartCoroutine(ShowMedalDelayed(_currentResult.medal, medalRevealDelay));
@@ -204,6 +206,9 @@ namespace MetalPod.UI
             {
                 medalText.text = MedalToText(medal);
             }
+
+            HapticFeedbackManager.Instance?.OnMedalEarned();
+            AccessibilityManager.Instance?.Announce($"{MedalToText(medal)} medal earned.");
 
             yield return StartCoroutine(AnimateMedalBounce());
         }
@@ -394,6 +399,23 @@ namespace MetalPod.UI
                 default:
                     return "NONE";
             }
+        }
+
+        private static void AnnounceRaceResult(CourseResultData result)
+        {
+            if (result == null)
+            {
+                return;
+            }
+
+            int totalCurrency = result.baseCurrencyEarned + result.bonusCurrencyEarned;
+            string medalTextValue = MedalToText(result.medal);
+            string announcement = string.Format(
+                AccessibilityLabels.RaceComplete,
+                FormatTime(result.completionTime),
+                medalTextValue,
+                totalCurrency);
+            AccessibilityManager.Instance?.Announce(announcement);
         }
     }
 }

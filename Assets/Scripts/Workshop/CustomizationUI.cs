@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using MetalPod.Accessibility;
 using TMPro;
 using MetalPod.UI;
 using UnityEngine;
@@ -254,6 +255,7 @@ namespace MetalPod.Workshop
 
             _ownedItems.Add(_selectedItem.id);
             SaveOwnedState();
+            HapticFeedbackManager.Instance?.OnUpgradePurchased();
             RefreshPreview();
         }
 

@@ -170,6 +170,7 @@ namespace MetalPod.Hovercraft
             _boostTimer = GetBoostDuration();
             TransitionToState(HovercraftState.Boosting);
             _input.TriggerHapticFeedback();
+            MetalPod.Accessibility.HapticFeedbackManager.Instance?.OnBoostActivated();
         }
 
         private void UpdateStateFromBrake()

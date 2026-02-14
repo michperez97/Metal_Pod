@@ -126,6 +126,7 @@ namespace MetalPod.Hovercraft
             OnDamage?.Invoke(finalDamage, remainingDamage);
             OnDamageTyped?.Invoke(finalDamage, remainingDamage, type);
             OnHealthChanged?.Invoke(CurrentHealth, CurrentShield);
+            MetalPod.Accessibility.HapticFeedbackManager.Instance?.OnDamageTaken();
 
             if (CurrentHealth <= 0f)
             {
@@ -199,6 +200,7 @@ namespace MetalPod.Hovercraft
             IsDestroyed = true;
             IsInvincible = false;
             _invincibilityTimer = 0f;
+            MetalPod.Accessibility.HapticFeedbackManager.Instance?.OnDestroyed();
             OnDestroyed?.Invoke();
         }
 

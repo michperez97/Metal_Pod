@@ -52,6 +52,7 @@ namespace MetalPod.Course
 
             IsActive = true;
             SetVisualState(true);
+            MetalPod.Accessibility.HapticFeedbackManager.Instance?.OnCheckpointReached();
             OnActivated?.Invoke(this, controller);
         }
 

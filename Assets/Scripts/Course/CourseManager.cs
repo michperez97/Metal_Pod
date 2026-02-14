@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Linq;
+using MetalPod.Accessibility;
 using MetalPod.Hovercraft;
 using MetalPod.ScriptableObjects;
 using MetalPod.Shared;
+using MetalPod.Tutorial;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -104,6 +106,7 @@ namespace MetalPod.Course
                 }
             }
 
+            EnsureTutorialManagerForFirstCourse();
             BeginCourse();
         }
 
@@ -221,6 +224,11 @@ namespace MetalPod.Course
             _lastCheckpoint = checkpoint;
             _nextCheckpointOrder++;
             OnCheckpointReached?.Invoke(checkpoint.CheckpointIndex);
+            AccessibilityManager.Instance?.Announce(
+                string.Format(
+                    AccessibilityLabels.CheckpointReached,
+                    checkpoint.CheckpointIndex + 1,
+                    _checkpoints.Length));
         }
 
         private void HandlePlayerDestroyed()
@@ -306,6 +314,32 @@ namespace MetalPod.Course
             _playerHealth = null;
             _playerInput = null;
             _playerRigidbody = null;
+        }
+
+        private void EnsureTutorialManagerForFirstCourse()
+        {
+            TutorialManager existing = FindFirstObjectByType<TutorialManager>(FindObjectsInactive.Include);
+            if (existing != null || TutorialSaveData.IsTutorialCompleted("first_play"))
+            {
+                return;
+            }
+
+            string sceneName = SceneManager.GetActiveScene().name;
+            bool isFirstCourseScene =
+                string.Equals(sceneName, "Lava_Course_01", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(sceneName, "TestCourse", StringComparison.OrdinalIgnoreCase);
+
+            bool isFirstCourseData = courseData != null &&
+                                     courseData.environmentType == EnvironmentType.Lava &&
+                                     courseData.courseIndex == 0;
+
+            if (!isFirstCourseScene && !isFirstCourseData)
+            {
+                return;
+            }
+
+            GameObject tutorialRoot = new GameObject("TutorialSystem");
+            tutorialRoot.AddComponent<TutorialManager>();
         }
     }
 }

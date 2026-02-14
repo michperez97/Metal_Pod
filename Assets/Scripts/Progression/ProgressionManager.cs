@@ -133,6 +133,7 @@ namespace MetalPod.Progression
 
             bool completedBefore = data.completedCourses.GetValueOrDefault(courseId, false);
             bool isFirstCompletion = !completedBefore;
+            int previousGoldMedalCount = data.GetGoldMedalCount();
 
             float currentBestTime = data.bestTimes.GetValueOrDefault(courseId, 0f);
             if (currentBestTime <= 0f || completionTime < currentBestTime)
@@ -153,6 +154,11 @@ namespace MetalPod.Progression
             }
 
             data.totalMedals = data.GetTotalMedals();
+            int currentGoldMedalCount = data.GetGoldMedalCount();
+            if (previousGoldMedalCount < 3 && currentGoldMedalCount >= 3)
+            {
+                MetalPod.iOSNativePlugin.RequestAppReview();
+            }
 
             _currencyManager?.AwardCourseCompletion(courseData, completionTime, medal, collectiblesFound, isFirstCompletion);
 
