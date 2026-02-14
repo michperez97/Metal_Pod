@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Linq;
-using System.Reflection;
 using MetalPod.Hovercraft;
 using MetalPod.ScriptableObjects;
+using MetalPod.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -281,27 +281,7 @@ namespace MetalPod.Course
                 ? courseData.courseId
                 : SceneManager.GetActiveScene().name;
 
-            CourseEventBus.RaiseCourseCompleted(courseId, completionTime, (int)medal);
-            RaiseSharedEventBusCourseCompleted(courseId, completionTime, (int)medal);
-        }
-
-        private void RaiseSharedEventBusCourseCompleted(string courseId, float completionTime, int medal)
-        {
-            // Bridge call for Agent 1 EventBus when it exists, without hard dependency.
-            Type eventBusType = Type.GetType("MetalPod.Shared.EventBus, Assembly-CSharp");
-            if (eventBusType == null)
-            {
-                return;
-            }
-
-            MethodInfo raiseMethod = eventBusType.GetMethod(
-                "RaiseCourseCompleted",
-                BindingFlags.Public | BindingFlags.Static,
-                null,
-                new[] { typeof(string), typeof(float), typeof(int) },
-                null);
-
-            raiseMethod?.Invoke(null, new object[] { courseId, completionTime, medal });
+            EventBus.RaiseCourseCompleted(courseId, completionTime, (int)medal);
         }
 
         private void ResetCourseProgress()

@@ -1,7 +1,7 @@
 using System.Collections;
 using System;
-using MetalPod.Hazards;
 using MetalPod.Hovercraft;
+using MetalPod.Shared;
 using UnityEngine;
 
 namespace MetalPod.Course

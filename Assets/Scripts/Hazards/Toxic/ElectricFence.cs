@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using MetalPod.Hovercraft;
+using MetalPod.Shared;
 using UnityEngine;
 
 namespace MetalPod.Hazards

@@ -1,4 +1,5 @@
 using MetalPod.Hovercraft;
+using MetalPod.Shared;
 using UnityEngine;
 
 namespace MetalPod.Hazards

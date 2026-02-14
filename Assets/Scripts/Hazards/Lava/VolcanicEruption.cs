@@ -1,4 +1,5 @@
 using System.Collections;
+using MetalPod.Shared;
 using UnityEngine;
 
 namespace MetalPod.Hazards

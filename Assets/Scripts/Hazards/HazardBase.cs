@@ -1,4 +1,5 @@
 using MetalPod.ScriptableObjects;
+using MetalPod.Shared;
 using UnityEngine;
 
 namespace MetalPod.Hazards
@@ -72,7 +73,7 @@ namespace MetalPod.Hazards
                 return true;
             }
 
-            return other.CompareTag("Player");
+            return other.CompareTag(GameConstants.TAG_PLAYER);
         }
 
         protected bool TryApplyDamage(Collider other, float amount)
