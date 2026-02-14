@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using TMPro;
 using MetalPod.UI;
 using UnityEngine;
@@ -46,6 +47,7 @@ namespace MetalPod.Workshop
         [Header("Data")]
         [SerializeField] private CustomizationSystem customizationSystem;
         [SerializeField] private MonoBehaviour currencyManagerSource;
+        [SerializeField] private MonoBehaviour progressionDataSource;
         [SerializeField] private CustomizationItem[] colorItems;
         [SerializeField] private CustomizationItem[] decalItems;
         [SerializeField] private CustomizationItem[] partItems;
@@ -58,6 +60,7 @@ namespace MetalPod.Workshop
         private string _equippedColorId = "";
         private string _equippedDecalId = "";
         private string _equippedPartId = "";
+        private object _cosmeticManagerSource;
 
         private const string OwnedPrefsKey = "MetalPod.Cosmetics.Owned";
         private const string EquippedColorPrefsKey = "MetalPod.Cosmetics.EquippedColor";
@@ -80,8 +83,14 @@ namespace MetalPod.Workshop
                 currencyManagerSource = FindSourceWithMember("SpendCurrency");
             }
 
+            if (progressionDataSource == null)
+            {
+                progressionDataSource = FindSourceWithMember("Cosmetics");
+            }
+
             LoadOwnedState();
             EnsureDefaultOwnership();
+            SyncEquippedFromProgression();
             SelectTab(_activeTab);
         }
 
@@ -233,7 +242,11 @@ namespace MetalPod.Workshop
                 return;
             }
 
-            bool success = SpendCurrency(_selectedItem.cost);
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            bool success = cosmeticManager != null
+                ? TryPurchaseCosmetic(_selectedItem.id)
+                : SpendCurrency(_selectedItem.cost);
+
             if (!success)
             {
                 return;
@@ -251,22 +264,35 @@ namespace MetalPod.Workshop
                 return;
             }
 
-            switch (_activeTab)
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            bool equippedByManager = cosmeticManager != null && TryEquipCosmetic(_selectedItem.id);
+
+            if (cosmeticManager != null && !equippedByManager)
             {
-                case CustomizationTab.Colors:
-                    _equippedColorId = _selectedItem.id;
-                    break;
-                case CustomizationTab.Decals:
-                    _equippedDecalId = _selectedItem.id;
-                    break;
-                case CustomizationTab.Parts:
-                    _equippedPartId = _selectedItem.id;
-                    break;
+                return;
+            }
+
+            if (!equippedByManager)
+            {
+                switch (_activeTab)
+                {
+                    case CustomizationTab.Colors:
+                        _equippedColorId = _selectedItem.id;
+                        break;
+                    case CustomizationTab.Decals:
+                        _equippedDecalId = _selectedItem.id;
+                        break;
+                    case CustomizationTab.Parts:
+                        _equippedPartId = _selectedItem.id;
+                        break;
+                }
+
+                SaveOwnedState();
+                SharedContractsBridge.Raise("RaiseCosmeticEquipped", _selectedItem.id);
             }
 
             ApplyPreview(_selectedItem);
-            SaveOwnedState();
-            SharedContractsBridge.Raise("RaiseCosmeticEquipped", _selectedItem.id);
+            SyncEquippedFromProgression();
             RefreshPreview();
         }
 
@@ -293,7 +319,22 @@ namespace MetalPod.Workshop
 
         private bool IsOwned(CustomizationItem item)
         {
-            return item != null && _ownedItems.Contains(item.id);
+            if (item == null)
+            {
+                return false;
+            }
+
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager != null)
+            {
+                object response = ReflectionValueReader.Invoke(cosmeticManager, "OwnsCosmetic", item.id);
+                if (response is bool ownsFromManager)
+                {
+                    return ownsFromManager;
+                }
+            }
+
+            return _ownedItems.Contains(item.id);
         }
 
         private bool IsEquipped(CustomizationItem item)
@@ -306,11 +347,11 @@ namespace MetalPod.Workshop
             switch (_activeTab)
             {
                 case CustomizationTab.Colors:
-                    return _equippedColorId == item.id;
+                    return GetEquippedColorId() == item.id;
                 case CustomizationTab.Decals:
-                    return _equippedDecalId == item.id;
+                    return GetEquippedDecalId() == item.id;
                 case CustomizationTab.Parts:
-                    return _equippedPartId == item.id;
+                    return GetEquippedPartId() == item.id;
                 default:
                     return false;
             }
@@ -366,6 +407,11 @@ namespace MetalPod.Workshop
 
         private void EnsureDefaultOwnership()
         {
+            if (ResolveCosmeticManagerSource() != null)
+            {
+                return;
+            }
+
             if (colorItems != null && colorItems.Length > 0 && colorItems[0] != null)
             {
                 _ownedItems.Add(colorItems[0].id);
@@ -394,6 +440,149 @@ namespace MetalPod.Workshop
             }
 
             SaveOwnedState();
+        }
+
+        private object ResolveCosmeticManagerSource()
+        {
+            if (_cosmeticManagerSource != null)
+            {
+                return _cosmeticManagerSource;
+            }
+
+            if (progressionDataSource == null)
+            {
+                return null;
+            }
+
+            PropertyInfo cosmeticsProperty = progressionDataSource.GetType().GetProperty(
+                "Cosmetics",
+                BindingFlags.Public | BindingFlags.Instance);
+
+            if (cosmeticsProperty == null)
+            {
+                if (ReflectionValueReader.HasMember(progressionDataSource, "OwnsCosmetic"))
+                {
+                    _cosmeticManagerSource = progressionDataSource;
+                }
+
+                return _cosmeticManagerSource;
+            }
+
+            _cosmeticManagerSource = cosmeticsProperty.GetValue(progressionDataSource);
+            return _cosmeticManagerSource;
+        }
+
+        private bool TryPurchaseCosmetic(string cosmeticId)
+        {
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager == null)
+            {
+                return false;
+            }
+
+            object response = ReflectionValueReader.Invoke(cosmeticManager, "TryPurchaseCosmetic", cosmeticId);
+            if (response is bool success)
+            {
+                return success;
+            }
+
+            return false;
+        }
+
+        private bool TryEquipCosmetic(string cosmeticId)
+        {
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager == null)
+            {
+                return false;
+            }
+
+            if (!ReflectionValueReader.HasMember(cosmeticManager, "EquipCosmetic"))
+            {
+                return false;
+            }
+
+            object ownsResponse = ReflectionValueReader.Invoke(cosmeticManager, "OwnsCosmetic", cosmeticId);
+            if (ownsResponse is bool owns && !owns)
+            {
+                return false;
+            }
+
+            ReflectionValueReader.Invoke(cosmeticManager, "EquipCosmetic", cosmeticId);
+            return true;
+        }
+
+        private void SyncEquippedFromProgression()
+        {
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager == null)
+            {
+                return;
+            }
+
+            string equippedColor = ReflectionValueReader.GetString(cosmeticManager, "EquippedColorScheme", _equippedColorId);
+            string equippedDecal = ReflectionValueReader.GetString(cosmeticManager, "EquippedDecal", _equippedDecalId);
+            string equippedPart = ReflectionValueReader.GetString(cosmeticManager, "EquippedPart", _equippedPartId);
+
+            if (!string.IsNullOrEmpty(equippedColor))
+            {
+                _equippedColorId = equippedColor;
+            }
+
+            if (!string.IsNullOrEmpty(equippedDecal))
+            {
+                _equippedDecalId = equippedDecal;
+            }
+
+            if (!string.IsNullOrEmpty(equippedPart))
+            {
+                _equippedPartId = equippedPart;
+            }
+        }
+
+        private string GetEquippedColorId()
+        {
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager != null)
+            {
+                string equipped = ReflectionValueReader.GetString(cosmeticManager, "EquippedColorScheme", _equippedColorId);
+                if (!string.IsNullOrEmpty(equipped))
+                {
+                    return equipped;
+                }
+            }
+
+            return _equippedColorId;
+        }
+
+        private string GetEquippedDecalId()
+        {
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager != null)
+            {
+                string equipped = ReflectionValueReader.GetString(cosmeticManager, "EquippedDecal", _equippedDecalId);
+                if (!string.IsNullOrEmpty(equipped))
+                {
+                    return equipped;
+                }
+            }
+
+            return _equippedDecalId;
+        }
+
+        private string GetEquippedPartId()
+        {
+            object cosmeticManager = ResolveCosmeticManagerSource();
+            if (cosmeticManager != null)
+            {
+                string equipped = ReflectionValueReader.GetString(cosmeticManager, "EquippedPart", _equippedPartId);
+                if (!string.IsNullOrEmpty(equipped))
+                {
+                    return equipped;
+                }
+            }
+
+            return _equippedPartId;
         }
 
         private CustomizationItem[] GetItemsForTab(CustomizationTab tab)

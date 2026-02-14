@@ -2,7 +2,7 @@ using System.Collections;
 using MetalPod.Shared;
 using UnityEngine;
 
-namespace MetalPod.Hazards
+namespace MetalPod.Hazards.Toxic
 {
     public class IndustrialPress : MonoBehaviour
     {

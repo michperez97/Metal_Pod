@@ -309,9 +309,22 @@ namespace MetalPod.UI
             if (!string.IsNullOrEmpty(_currentResult.nextCourseId))
             {
                 SharedContractsBridge.Raise("RaiseCourseSelected", _currentResult.nextCourseId);
+
+                Time.timeScale = 1f;
+
+                if (Application.CanStreamedLevelBeLoaded(_currentResult.nextCourseId))
+                {
+                    SceneManager.LoadScene(_currentResult.nextCourseId);
+                    return;
+                }
             }
 
+            string workshopScene = string.IsNullOrEmpty(workshopSceneNameOverride)
+                ? SharedContractsBridge.SceneWorkshop
+                : workshopSceneNameOverride;
+
             Time.timeScale = 1f;
+            SceneManager.LoadScene(workshopScene);
         }
 
         private void OnWorkshop()

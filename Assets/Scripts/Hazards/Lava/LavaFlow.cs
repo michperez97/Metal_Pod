@@ -1,7 +1,7 @@
 using MetalPod.Shared;
 using UnityEngine;
 
-namespace MetalPod.Hazards
+namespace MetalPod.Hazards.Lava
 {
     public class LavaFlow : HazardBase
     {

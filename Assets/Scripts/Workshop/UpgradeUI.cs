@@ -201,9 +201,11 @@ namespace MetalPod.Workshop
                 return;
             }
 
-            int newLevel = currentLevel + 1;
-            _localLevels[_selectedUpgrade.upgradeId] = newLevel;
-            SharedContractsBridge.Raise("RaiseUpgradePurchased", _selectedUpgrade.upgradeId, newLevel);
+            if (progressionDataSource == null)
+            {
+                int newLevel = currentLevel + 1;
+                _localLevels[_selectedUpgrade.upgradeId] = newLevel;
+            }
 
             if (protagonistController != null)
             {

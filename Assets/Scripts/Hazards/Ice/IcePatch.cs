@@ -1,7 +1,7 @@
 using MetalPod.Hovercraft;
 using UnityEngine;
 
-namespace MetalPod.Hazards
+namespace MetalPod.Hazards.Ice
 {
     [RequireComponent(typeof(Collider))]
     public class IcePatch : MonoBehaviour
