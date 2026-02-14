@@ -1,0 +1,19 @@
+{
+  "defaultLanguage": "en",
+  "languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "nativeName": "English",
+      "file": "en",
+      "isRTL": false
+    },
+    {
+      "code": "es",
+      "name": "Spanish",
+      "nativeName": "Español",
+      "file": "es",
+      "isRTL": false
+    }
+  ]
+}
