@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using MetalPod.Core;
 using MetalPod.Course;
@@ -104,7 +103,7 @@ namespace MetalPod.Debugging
 
                     scale = Mathf.Clamp(scale, 0f, 10f);
                     Time.timeScale = scale;
-                    Time.fixedDeltaTime = 0.02f * Mathf.Max(0f, scale);
+                    Time.fixedDeltaTime = 0.02f * Mathf.Max(0.01f, scale);
                     return $"timeScale set to {scale:F2}";
                 }));
         }
@@ -736,23 +735,7 @@ namespace MetalPod.Debugging
                 return false;
             }
 
-            const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
-            PropertyInfo invincibleProperty = typeof(HovercraftHealth).GetProperty("IsInvincible", Flags);
-            MethodInfo setter = invincibleProperty != null ? invincibleProperty.GetSetMethod(true) : null;
-            if (setter == null)
-            {
-                return false;
-            }
-
-            setter.Invoke(health, new object[] { enabled });
-
-            FieldInfo timerField = typeof(HovercraftHealth).GetField("_invincibilityTimer", Flags);
-            if (timerField != null)
-            {
-                timerField.SetValue(health, enabled ? 99999f : 0f);
-            }
-
+            health.SetInvincible(enabled);
             return true;
         }
 

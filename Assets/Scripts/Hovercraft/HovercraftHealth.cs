@@ -217,6 +217,17 @@ namespace MetalPod.Hovercraft
             _invincibilityTimer = duration;
         }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        /// <summary>
+        /// Debug-only: directly set invincibility state. Stripped from release builds.
+        /// </summary>
+        public void SetInvincible(bool enabled)
+        {
+            IsInvincible = enabled;
+            _invincibilityTimer = enabled ? 99999f : 0f;
+        }
+#endif
+
         private static float GetDamageTypeModifier(DamageType type)
         {
             return type switch

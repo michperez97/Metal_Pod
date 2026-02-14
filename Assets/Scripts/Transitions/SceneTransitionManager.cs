@@ -44,6 +44,11 @@ namespace MetalPod.Transitions
             }
             Instance = this;
 
+            // Instantiate runtime material copies to avoid modifying asset files
+            if (fadeMaterial != null) fadeMaterial = new Material(fadeMaterial);
+            if (wipeMaterial != null) wipeMaterial = new Material(wipeMaterial);
+            if (dissolveMaterial != null) dissolveMaterial = new Material(dissolveMaterial);
+
             if (transitionCanvas != null)
             {
                 transitionCanvas.sortingOrder = 9999;
@@ -195,6 +200,11 @@ namespace MetalPod.Transitions
 
         private void OnDestroy()
         {
+            // Clean up instantiated materials
+            if (fadeMaterial != null) Destroy(fadeMaterial);
+            if (wipeMaterial != null) Destroy(wipeMaterial);
+            if (dissolveMaterial != null) Destroy(dissolveMaterial);
+
             if (Instance == this) Instance = null;
         }
     }
